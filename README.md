@@ -102,5 +102,29 @@ ADD ./index.php /var/www/html/index.php
 ENTRYPOINT ["apache2-foreground"]
 ```
 
+## 2. Construire l'image
 
+Dans `ingnum/PhpService` :
+```
+docker build -t marinec-php-service .
+```
+Vérifier la création de l'image :
+```
+docker images
+```
+
+## 3. Tester
+```
+docker run -p 8082:80 marinec-php-service
+```
+
+Dans le navigateur : 
+```
+http://localhost:8082
+```
+
+Résultat :
+```
+Marine Cadet
+```
 
