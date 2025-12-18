@@ -28,7 +28,6 @@ cd C:\Users\marin\Desktop\cours\docker\ingnum\RentalService
 dir build\libs
 & "C:\Program Files\Java\jdk-21\bin\java.exe" -jar build\libs\RentalService-0.0.1-SNAPSHOT.jar
 ```
-
 - tester dans le navigateur : http://localhost:8080/bonjour
 
 ## Partie 2️ : Lancer le projet avec Docker
@@ -127,4 +126,28 @@ Résultat :
 ```
 Marine Cadet
 ```
+
+## 4. Publier l'image sur Docker Hub
+
+Se connecter à Docker Hub :
+```
+docker login
+```
+
+Créer un tag sur l'image :
+```
+docker tag marinec-php-service marinecdt/marinec-php-service:latest
+```
+
+Publier l'image :
+```
+docker push marinecdt/marinec-php-service:latest
+```
+
+Vérifier la présence de l'image sur Docker Hub : 
+```
+https://hub.docker.com/r/tonpseudo/prenom-php-service
+```
+
+
 
