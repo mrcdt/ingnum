@@ -149,5 +149,13 @@ Vérifier la présence de l'image sur Docker Hub :
 https://hub.docker.com/r/tonpseudo/prenom-php-service
 ```
 
+## 5. Mettre à jour GitHub
+
+```
+git add .
+git commit -m "Ajout du microservice PHP"
+git push origin main
+```
+
 
 
