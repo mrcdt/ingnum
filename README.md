@@ -1,4 +1,4 @@
-# RentalService - Guide d’installation et lancement
+# TP 1. RentalService - Guide d’installation et lancement
 
 ## Partie 1️ : Lancer le projet sans Docker
 
@@ -68,8 +68,39 @@ docker tag rentalservice marinecdt/rentalservice:v1
  docker push marinecdt/rentalservice:v1
 ```
 
+# TP 2. PhpService - Guide d’installation et lancement
 
+## 1. Mise en place du micro-servcie
 
+### 1. Création du micro-service
+- Dans le dossier `ingnum`, crée un dossier nommé `PhpService` qui sera notre seconde micro-service
+
+### 2. Création du programme php
+- Dans le dossier `PhpService`, crée un fichier nommé `index.php` :
+```
+<?php
+header('Content-Type: text/plain');
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    echo "Marine Cadet";
+} else {
+    http_response_code(405);
+    echo "Method Not Allowed";
+}
+```
+### 3. Création du Dockerfil
+- Dans le dossier `PhpService`, crée un fichier nommé `Dockerfile` :
+```
+FROM php:8.2-apache
+
+VOLUME /tmp
+
+EXPOSE 80
+
+ADD ./index.php /var/www/html/index.php
+
+ENTRYPOINT ["apache2-foreground"]
+```
 
 
 
