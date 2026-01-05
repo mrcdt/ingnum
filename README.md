@@ -363,7 +363,7 @@ Cette étape permet de confirmer que les deux microservices sont non seulement a
 
 * **Test PHP (Port 8081)** : Accédez à [http://localhost:8081].
    * Résultat : Le navigateur affiche "Prénom : Marine" suivi de la réponse envoyée par le service Java : "GET → Java : liste des locations". Cela       valide la réussite de la communication inter-conteneurs.
-* **Test Java (Port 8080)** : Accédez à [http://localhost:8080/api/rentals] pour vérifier l'état du backend de manière indépendante.
+* **Test Java (Port 8080)** : Accédez à [[http://localhost:8080/api/rentals](http://localhost:8080/customer/Marine)] pour vérifier l'état du backend de manière indépendante.
 
 ## 8. Publication sur Docker Hub
 
