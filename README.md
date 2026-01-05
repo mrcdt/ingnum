@@ -194,7 +194,7 @@ EXPOSE 8080
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
 ```
 
-## 2. Configuration Orchestrée (docker-compose.yml)
+## 3. Configuration Orchestrée (docker-compose.yml)
 À la racine du projet, le fichier `docker-compose.yml` définit les deux services :
 
 ```yaml
@@ -230,7 +230,7 @@ networks:
     driver: bridge
 ```
 
-## 3. Code Source des Microservices
+## 4. Code Source des Microservices
 
 ### A. PHP Service (`index.php`)
 Le code PHP identifie la méthode HTTP reçue par le navigateur et la transmet au service Java en utilisant le nom du service Docker (`rental-service`) comme hôte.
@@ -324,7 +324,7 @@ public class RentalController {
 }
 ```
 
-## 4. Procédure de Déploiement
+## 5. Procédure de Déploiement
 
 Cette étape permet de transformer le code source en conteneurs opérationnels. Elle se décompose en deux phases : la préparation du livrable Java et le lancement de l'orchestration globale.
 
@@ -352,14 +352,14 @@ Le fichier `docker-compose.yml` est le chef d'orchestre de votre infrastructure.
 docker-compose up --build
 ```
 
-## 5. TEst et validation
+## 6. TEst et validation
 Cette étape permet de confirmer que les deux microservices sont non seulement actifs, mais qu'ils parviennent à échanger des données à travers le réseau Docker.
 
 * **Test PHP (Port 8081)** : Accédez à [http://localhost:8081].
    * Résultat : Le navigateur affiche "Prénom : Marine" suivi de la réponse envoyée par le service Java : "GET → Java : liste des locations". Cela       valide la réussite de la communication inter-conteneurs.
 * **Test Java (Port 8080)** : Accédez à [http://localhost:8080/api/rentals] pour vérifier l'état du backend de manière indépendante.
 
-## 6. Publication sur Docker Hub
+## 7. Publication sur Docker Hub
 
 Une fois les tests validés, les images locales ont été taguées avec mon identifiant Docker Hub `(marinecdt)` puis poussées sur le registre public pour permettre un déploiement distant.
 
