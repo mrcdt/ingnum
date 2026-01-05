@@ -157,5 +157,196 @@ git commit -m "Ajout du microservice PHP"
 git push origin main
 ```
 
+# TP 3. Orchestration et Communication Microservices
+
+Ce volet finalise le projet en mettant en place une architecture orchestrée où le microservice PHP communique avec le microservice Java au sein d'un réseau Docker.
+
+## 1. Architecture Réseau
+L'application utilise un réseau Docker de type `bridge` nommé `microservices-network`. 
+- **PHP (`phpservice`)** : Client qui initie la requête.
+- **Java (`rental-service`)** : Serveur API qui traite la requête.
+
+## 2. Configuration Orchestrée (docker-compose.yml)
+À la racine du projet, le fichier `docker-compose.yml` définit les deux services :
+
+```yaml
+version: '3.8'
+
+services:
+  phpservice:
+    build:
+      context: ./PhpService
+      dockerfile: Dockerfile
+    container_name: phpservice
+    ports:
+      - "8081:80"
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  rental-service:
+    build:
+      context: ./RentalService
+      dockerfile: Dockerfile
+    container_name: rental-service
+    ports:
+      - "8080:8080"
+    networks:
+      - microservices-network
+    depends_on:
+      - phpservice
+    restart: unless-stopped
+
+networks:
+  microservices-network:
+    driver: bridge
+```
+
+## 3. Code Source des Microservices
+
+### A. PHP Service (`index.php`)
+Le code PHP identifie la méthode HTTP reçue par le navigateur et la transmet au service Java en utilisant le nom du service Docker (`rental-service`) comme hôte.
 
 
+
+```php
+<?php
+$prenom = "Marine";
+$javaService = "http://rental-service:8080/api/rentals";
+$method = $_SERVER['REQUEST_METHOD'];
+
+// Configuration du contexte pour l'appel au service Java
+$options = [
+    'http' => [
+        'method' => $method,
+        'header' => "Content-Type: application/json\r\n",
+        'content' => json_encode(["client" => "PHP"])
+    ]
+];
+$context = stream_context_create($options);
+
+// Logique de routage vers le service Java
+if ($method === 'GET') {
+    $response = file_get_contents($javaService);
+} elseif (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+    $url = ($method === 'POST') ? $javaService : "$javaService/1";
+    $response = file_get_contents($url, false, $context);
+}
+
+// Affichage final
+echo "Prénom : " . $prenom . "<br>";
+echo "Réponse du service Java : " . $response;
+?>
+```
+
+### B. Java Service (`RentalController.java`)
+
+Le microservice backend est développé avec **Spring Boot**. L'API Java expose les différents points d'entrée (endpoints) sur le chemin `/api/rentals`. L'annotation `@RestController` permet de retourner directement des chaînes de caractères ou du JSON au service PHP.
+
+
+
+```java
+package com.ingnum.rentalservice.controller;
+
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/rentals")
+public class RentalController {
+
+    /**
+     * Récupère la liste des locations (Appelé par le GET de PHP)
+     */
+    @GetMapping
+    public String getRentals() {
+        return "GET → Java : liste des locations";
+    }
+
+    /**
+     * Crée une nouvelle location (Appelé par le POST de PHP)
+     */
+    @PostMapping
+    public String createRental(@RequestBody String body) {
+        return "POST → Java : création location " + body;
+    }
+
+    /**
+     * Met à jour une location (Appelé par le PUT de PHP)
+     */
+    @PutMapping("/{id}")
+    public String updateRental(@PathVariable int id, @RequestBody String body) {
+        return "PUT → Java : remplacement location " + id;
+    }
+
+    /**
+     * Modification partielle (Appelé par le PATCH de PHP)
+     */
+    @PatchMapping("/{id}")
+    public String patchRental(@PathVariable int id, @RequestBody String body) {
+        return "PATCH → Java : modification partielle location " + id;
+    }
+
+    /**
+     * Supprime une location (Appelé par le DELETE de PHP)
+     */
+    @DeleteMapping("/{id}")
+    public String deleteRental(@PathVariable int id) {
+        return "DELETE → Java : suppression location " + id;
+    }
+}
+```
+
+## 4. Procédure de Déploiement
+
+Cette étape permet de transformer le code source en conteneurs opérationnels. Elle se décompose en deux phases : la préparation du livrable Java et le lancement de l'orchestration globale.
+
+### 1. Compilation du projet Java
+Il est indispensable de générer manuellement le fichier `.jar` avant de construire l'image Docker. Cela garantit que les dernières modifications apportées au code source (notamment le `RentalController`) sont bien incluses dans l'image finale.
+
+
+
+```powershell
+# Accéder au dossier du service Java
+cd RentalService
+
+# Nettoyer les anciens builds et générer le nouveau JAR avec Gradle
+.\gradlew clean build
+
+# Revenir à la racine du projet (où se trouve le docker-compose.yml)
+cd ..
+```
+
+### 2. Lancement de l'orchestration
+Le fichier `docker-compose.yml` est le chef d'orchestre de votre infrastructure. Il permet de monter simultanément les deux services (`phpservice` et `rental-service`) ainsi que le réseau privé qui les lie, le tout en une seule ligne de commande.
+
+```powershell
+# Lancer l'ensemble de l'architecture et forcer la reconstruction des images
+docker-compose up --build
+```
+
+## 5. TEst et validation
+Cette étape permet de confirmer que les deux microservices sont non seulement actifs, mais qu'ils parviennent à échanger des données à travers le réseau Docker.
+
+* **Test PHP (Port 8081)** : Accédez à [http://localhost:8081].
+   * Résultat : Le navigateur affiche "Prénom : Marine" suivi de la réponse envoyée par le service Java : "GET → Java : liste des locations". Cela       valide la réussite de la communication inter-conteneurs.
+* **Test Java (Port 8080)** : Accédez à [http://localhost:8080/api/rentals] pour vérifier l'état du backend de manière indépendante.
+
+## 6. Publication sur Docker Hub
+
+Une fois les tests validés, les images locales ont été taguées avec mon identifiant Docker Hub `(marinecdt)` puis poussées sur le registre public pour permettre un déploiement distant.
+
+```
+# --- Service PHP ---
+# Tag de l'image locale vers le format Docker Hub
+docker tag ingnum-phpservice:latest marinecdt/marinec-php-service:latest
+
+# Publication de l'image
+docker push marinecdt/marinec-php-service:latest
+
+# --- Service Java ---
+# Tag de l'image locale vers le format Docker Hub
+docker tag ingnum-rental-service:latest marinecdt/rentalservice:latest
+
+# Publication de l'image
+docker push marinecdt/rentalservice:latest
+```
