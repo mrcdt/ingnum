@@ -166,6 +166,34 @@ L'application utilise un réseau Docker de type `bridge` nommé `microservices-n
 - **PHP (`phpservice`)** : Client qui initie la requête.
 - **Java (`rental-service`)** : Serveur API qui traite la requête.
 
+## 2. Modifier Dockerfile `RentalService`
+
+```
+# --- Étape 1 : Build (Compilation) ---
+FROM gradle:8.5-jdk21 AS build
+WORKDIR /app
+
+# On copie les fichiers de configuration Gradle en premier pour mettre en cache les dépendances
+COPY build.gradle settings.gradle ./
+# On copie le code source
+COPY src ./src
+
+# On lance la compilation (le -x test permet d'aller plus vite en ignorant les tests unitaires)
+RUN gradle build --no-daemon -x test
+
+# --- Étape 2 : Run (Exécution) ---
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+
+# On récupère UNIQUEMENT le JAR généré à l'étape précédente
+# Le dossier de build de Gradle dans le conteneur est /app/build/libs/
+COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+```
+
 ## 2. Configuration Orchestrée (docker-compose.yml)
 À la racine du projet, le fichier `docker-compose.yml` définit les deux services :
 
