@@ -67,7 +67,7 @@ docker tag rentalservice marinecdt/rentalservice:v1
  docker push marinecdt/rentalservice:v1
 ```
 
-# TP2 - Conteneurisation
+# TP2 - Conteneurisation - 2e microservice (PHP)
 
 ## 1. Architecture du Projet
 
